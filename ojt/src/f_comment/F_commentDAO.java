@@ -11,6 +11,7 @@ import sqlmap.MyAppSqlConfig;
 public class F_commentDAO {
 	private static SqlSessionFactory sqlMapper;
 	private static SqlSession session;
+	private int gy;
 		
 	static{
 		sqlMapper = MyAppSqlConfig.getSqlMapInstance();
