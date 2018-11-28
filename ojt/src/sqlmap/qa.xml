@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="qa">
+
+<select id="checkRefnum" parameterType="int" resultType="int">
+ select count(q_refnum)
+ from QA         
+ where q_refnum = #{q_num}  
+</select>
+
+
+<insert id="insertReply" parameterType="QADTO">
+insert into QA(q_num, q_title, q_content, q_category, q_date, q_writer,
+q_grpno, q_indent, q_ansnum, q_refnum, q_filename, q_filesize)
+values(
+(select nvl(max(q_num),0) +1 from QA),                                                  
+#{q_title}, #{q_content}, #{q_category}, sysdate, #{q_writer},
+#{q_grpno}, #{q_indent}+1, #{q_ansnum}+1, #{q_num}, 
+#{q_filename, jdbcType=VARCHAR}, #{q_filesize, jdbcType=INTEGER})                                                                    
+</insert>
+
+<update id="upAnsnum" parameterType="Map">
+update QA
+set q_ansnum = q_ansnum +1
+where q_grpno = #{q_grpno}
+and q_ansnum > #{q_ansnum}
+</update>
+
+
+<select id="replyRead" parameterType="int" resultType="QADTO">
+select q_num, q_title, q_content, q_grpno, q_indent, q_ansnum
+from QA
+where q_num=#{q_num}                                        
+</select>
+
+<delete id="delete" parameterType="int">
+DELETE FROM QA 
+where q_num=#{q_num}
+</delete>
+
+<update id="update" parameterType="QADTO">
+update QA
+set q_category=#{q_category}, q_title=#{q_title}, q_filename=#{q_filename}, q_content=#{q_content}
+ <if test="filesize>0">
+ ,q_filename=#{q_filename},
+ q_filesize=#{q_filesize}
+ </if>
+where q_num=#{q_num}
+</update>
+
+<insert id="create" parameterType="QADTO">
+insert into QA(q_num, q_category, q_title, q_filename, q_filesize, q_content, q_date, q_writer, q_grpno)
+values((select nvl(max(q_num),0) +1 from QA),
+#{q_category}, #{q_title}, #{q_filename, jdbcType=VARCHAR} #{q_filesize, jdbcType=INTEGER}, #{q_content}, sysdate, #{q_writer}, (select nvl(max(q_grpno),0) +1 from QA));                             
+</insert>
+
+
+
+<select id="read" parameterType="int" resultType="QADTO">
+select q_num, q_title, q_filename, q_content, q_writer, q_date, q_category
+from QA
+where q_num=#{q_num};                                                                              
+</select>
+
+<select id="total" parameterType="Map" resultType="int">
+select count(*) from QA
+<where>
+		<choose>
+			<when test="col=='q_title'">
+				q_title like '%'||#{word}||'%'
+			</when>
+			<when test="col=='q_content'">
+				q_content like '%'||#{word}||'%'
+			</when>
+			<when test="col=='q_writer'">
+				q_writer like '%'||#{word}||'%'
+			</when>
+		</choose>
+</where>  
+</select>
+
+
+<select id="list" parameterType="Map" resultType="QADTO">
+select q_num, q_category, q_date, q_title, q_writer, r
+from(
+select q_num, q_category, q_date, q_title, q_writer, rownum r
+from(
+select q_num, q_category, q_date, q_title, q_writer
+from QA
+	<where>
+		<choose>
+			<when test="col=='q_title'">
+				q_title like '%'||#{word}||'%'
+			</when>
+			<when test="col=='q_content'">
+				q_content like '%'||#{word}||'%'
+			</when>
+			<when test="col=='q_writer'">
+				q_writer like '%'||#{word}||'%'
+			</when>
+		</choose>
+		
+		
+	</where>                                                                                                
+	ORDER BY q_date desc
+	)
+)
+<![CDATA[                                                                       
+where r>=#{sno} and r<=#{eno}
+]]>                                                                                     
+
+</select>
+     
+</mapper>
+

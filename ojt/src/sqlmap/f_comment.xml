@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="f_comment">
+<!-- 댓글갯수 -->
+<select id="fcCount" parameterType="int" resultType="int">
+ SELECT count(*) FROM f_comment
+where f_num = #{f_num}
+</select>
+
+<insert id = "create" parameterType="F_commentDTO">
+<selectKey keyProperty="fc_num" resultType="int" order="BEFORE">
+select nvl(max(fc_num),0)+1 from f_comment
+</selectKey>
+insert into f_comment(fc_num, fc_content, fc_date, fc_writer, f_num)
+values(#{fc_num}, #{fc_content}, sysdate, #{fc_writer}, #{f_num})
+</insert>
+
+<select id="read" parameterType="int" resultType="F_commentDTO">
+select * from f_comment
+where fc_num = #{fc_num}
+</select>
+
+<update id="update" parameterType="F_commentDTO">
+update f_comment
+set f_content = #{f_content}
+where fc_num = #{fc_num}
+</update>
+
+<delete id="delete" parameterType="int">
+delete from f_comment
+where fc_num = #{fc_num}
+</delete>
+
+
+<delete id="deleteAll" parameterType="int">
+delete from f_comment
+where f_num = #{f_num}
+</delete>
+
+<select id="list" parameterType="Map" resultType="F_commentDTO">
+select fc_num, fc_content, to_char(fc_date,'yyyy-mm-dd') fc_date, fc_writer, f_num, r
+FROM(
+select fc_num, fc_content, fc_date, fc_writer, f_num, rownum r
+FROM(
+select fc_num, fc_content, fc_date, fc_writer, f_num
+from f_comment
+where f_num = 1
+order by fc_num DESC
+)
+
+<![CDATA[
+)WHERE r >= #{sno} and r <= #{eno}
+]]>
+</select>
+
+<select id="total" parameterType="int" resultType="int">
+select count(*) from f_comment
+where f_num = #{f_num}
+</select>
+     
+</mapper>
+

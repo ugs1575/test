@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="faq_company">
+<delete id="delete" parameterType="int">
+delete faq_company
+where fqc_num=#{fqc_num}
+</delete>
+
+<update id="update" parameterType="FaqUsersDTO">
+update faq_company
+set fqc_title=#{fqc_title}, fqc_content=#{fqc_content}, fqc_category=#{fqc_category}
+where fqc_num=#{fqc_num}
+</update>
+
+<insert id="create" parameterType="FaqUsersDTO">
+insert into faq_company
+(fqc_num, fqc_title, fqc_content, fqc_category)
+values((select nvl(max(fqc_num),0) +1 from faq_company),
+#{fqc_title}, #{fqc_content}, #{fqc_category})       
+</insert>
+
+
+<select id="read" parameterType="int" resultType="FaqUsersDTO">
+select fqc_num, fqc_title, fqc_content, fqc_category 
+from faq_company
+where fqc_num=#{fqc_num}                                                                           
+</select>
+
+<select id="total" parameterType="Map" resultType="int">
+select count(*) from faq_company
+<where>
+		<choose>
+			<when test="col=='fqc_title'">
+				fqc_title like '%'||#{word}||'%'
+			</when>
+			<when test="col=='fqc_content'">
+				fqc_content like '%'||#{word}||'%'
+			</when>
+		</choose>
+</where>  
+</select>
+
+
+<select id="list" parameterType="Map" resultType="FaqUsersDTO">
+select fqc_num, fqc_title, fqc_content, fqc_category, r
+from(
+select fqc_num, fqc_title, fqc_content, fqc_category, rownum r
+from(
+select fqc_num, fqc_title, fqc_content, fqc_category
+from faq_company
+	<where>
+		<choose>
+			<when test="col=='fqc_title'">
+				fqc_title like '%'||#{word}||'%'
+			</when>
+			<when test="col=='fqc_content'">
+				fqc_content like '%'||#{word}||'%'
+			</when>
+		</choose>
+		
+		
+	</where>                                                                                                
+	order by fqc_title desc
+	)
+)
+<![CDATA[                                                                       
+where r>=#{sno} and r<=#{eno}
+]]>                                                                                     
+
+</select>
+     
+</mapper>
+
